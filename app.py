@@ -3,12 +3,17 @@ import joblib
 import gradio as gr
 
 # Load the trained model
-model = joblib.load("diabetes_prediction_model.pkl")
+MODEL_PATH = "diabetes_prediction_model.pkl"
+
+try:
+    model = joblib.load(MODEL_PATH)
+except Exception as e:
+    raise RuntimeError(f"Unable to load model: {e}")
 
 
 def predict_diabetes(pregnancies, glucose, insulin, bmi, age):
     try:
-        # Convert inputs to float
+        # Prepare input data
         input_data = [[
             float(pregnancies),
             float(glucose),
@@ -17,43 +22,49 @@ def predict_diabetes(pregnancies, glucose, insulin, bmi, age):
             float(age)
         ]]
 
-        prediction = model.predict(input_data)
+        # Predict
+        prediction = model.predict(input_data)[0]
 
-        if prediction[0] == 0:
+        # Standard interpretation:
+        # 0 = Negative, 1 = Positive
+        if prediction == 1:
             return "🩺 Prediction: High Risk of Diabetes (Positive)"
         else:
             return "✅ Prediction: Low Risk of Diabetes (Negative)"
 
     except Exception as e:
-        return f"Error: {str(e)}"
+        return f"Error: {e}"
 
 
 with gr.Blocks(title="Diabetes Prediction System") as demo:
     gr.Markdown(
         """
-        # 🩺 Diabetes Prediction System
+# 🩺 Diabetes Prediction System
 
-        Enter the medical details below to predict diabetes risk using a Decision Tree Machine Learning model.
+Enter the patient details below to predict diabetes risk using a Decision Tree Machine Learning model.
 
-        **Name:** Sachin  
-        **Roll No.:** 241048
-        """
+**Name:** Sachin  
+**Roll No.:** 241048
+"""
     )
 
-    pregnancies = gr.Number(label="Pregnancies")
-    glucose = gr.Number(label="Glucose")
-    insulin = gr.Number(label="Insulin")
-    bmi = gr.Number(label="BMI")
+    with gr.Row():
+        pregnancies = gr.Number(label="Pregnancies")
+        glucose = gr.Number(label="Glucose")
+
+    with gr.Row():
+        insulin = gr.Number(label="Insulin")
+        bmi = gr.Number(label="BMI")
+
     age = gr.Number(label="Age")
 
-    output = gr.Textbox(label="Prediction")
-
-    predict_btn = gr.Button("Predict")
+    predict_btn = gr.Button("Predict", variant="primary")
+    output = gr.Textbox(label="Prediction", interactive=False)
 
     predict_btn.click(
         fn=predict_diabetes,
         inputs=[pregnancies, glucose, insulin, bmi, age],
-        outputs=output,
+        outputs=output
     )
 
 
@@ -62,5 +73,6 @@ if __name__ == "__main__":
 
     demo.launch(
         server_name="0.0.0.0",
-        server_port=port
+        server_port=port,
+        show_error=True
     )
