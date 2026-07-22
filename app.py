@@ -19,7 +19,7 @@ def predict_diabetes(pregnancies, glucose, insulin, bmi, age):
 
         prediction = model.predict(input_data)
 
-        if prediction[0] == 0:
+        if prediction[0] == 1:
             return "🩺 Prediction: High Risk of Diabetes (Positive)"
         else:
             return "✅ Prediction: Low Risk of Diabetes (Negative)"
